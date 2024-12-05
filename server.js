@@ -27,9 +27,9 @@ async function saveOrder(orderId, tickets, total) {
   return true; // Simulating a successful save
 }
 
-async function getCheckoutId(accessToken, total, orderId) {
-  return `${orderId}-${Math.random().toString(36).substring(2, 15)}`;
-}
+// async function getCheckoutId(accessToken, total, orderId) {
+//   return `${orderId}-${Math.random().toString(36).substring(2, 15)}`;
+// }
 
 // Route to handle ticket ordering
 app.post("/order-tickets", async (req, res) => {
