@@ -27,9 +27,9 @@ async function saveOrder(orderId, tickets, total) {
   return true; // Simulating a successful save
 }
 
-// async function getCheckoutId(accessToken, total, orderId) {
-//   return `${orderId}-${Math.random().toString(36).substring(2, 15)}`;
-// }
+async function getCheckoutId(accessToken, total, orderId) {
+  return `${orderId}-${Math.random().toString(36).substring(2, 15)}`;
+}
 
 // Route to handle ticket ordering
 app.post("/order-tickets", async (req, res) => {
@@ -50,7 +50,7 @@ app.post("/order-tickets", async (req, res) => {
     const orderId = Math.random().toString(36).substring(2, 15);
     await saveOrder(orderId, order, total);
 
-    const checkoutId = '5fd3715c1056474687b55abca2c5ad7f';
+    const checkoutId = process.env.CHECKOUT_ID;
     const url = `${req.protocol}://${req.get("host")}/checkout/${checkoutId}`;
 
     return res.status(200).json({ url });
@@ -62,17 +62,21 @@ app.post("/order-tickets", async (req, res) => {
 
 // Route to handle checkout page
 app.get("/checkout/:checkoutId", (req, res) => {
-  try {
-    res.header("Permissions-Policy", "payment self 'src'");
-    return res.render("index.ejs", {
-      checkoutId: req.params.checkoutId,
-      key: process.env.PEACH_PAYMENTS_ENTITY_ID,
-    });
-  } catch (error) {
-    console.error("Error loading checkout page:", error);
-    return res.status(500).send("Internal Server Error");
-  }
-});
+    try {
+      const checkoutId = req.params.checkoutId;
+      const key = process.env.PEACH_PAYMENTS_ENTITY_ID;
+      console.log("Rendering EJS with:", { checkoutId, key }); // Debug log
+  
+      res.header("Permissions-Policy", "payment self 'src'");
+      return res.render("index.ejs", {
+        checkoutId,
+        key,
+      });
+    } catch (error) {
+      console.error("Error loading checkout page:", error);
+      return res.status(500).send("Internal Server Error");
+    }
+  });
 
 app.listen(3000, () => {
   console.log("Ticket ordering system running on localhost:3000");
