@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Your Ticket Purchase</title>
+    <script src="https://sandbox-checkout.peachpayments.com/js/checkout.js"></script>
+  </head>
+  <body>
+    <h1>Ticket Checkout</h1>
+    <div id="payment-form"></div>
+    <script>
+      const checkout = Checkout.initiate({
+        checkoutId: "<%= checkoutId %>",
+        key: "<%= key %>",
+        events: {
+          onCompleted: (event) => {
+            console.log("Payment Successful:", event);
+            checkout.unmount();
+            document.getElementById("payment-form").innerText = "Thank you for your purchase!";
+          },
+          onCancelled: (event) => {
+            console.log("Payment Cancelled:", event);
+            checkout.unmount();
+            document.getElementById("payment-form").innerText = "Order cancelled!";
+          },
+          onExpired: (event) => {
+            console.log("Payment Expired:", event);
+            checkout.unmount();
+            document.getElementById("payment-form").innerText = "Payment session expired.";
+          },
+        },
+      });
+      checkout.render("#payment-form");
+    </script>
+  </body>
+</html>
