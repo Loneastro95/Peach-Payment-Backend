@@ -2,36 +2,91 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Complete Your Ticket Purchase</title>
-    <script src="https://sandbox-checkout.peachpayments.com/js/checkout.js"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Embedded Checkout - example integration</title>
+    <script src="<%= checkoutJs %>"></script>
   </head>
   <body>
-    <h1>Ticket Checkout</h1>
+    <div id="complete-checkout">
+      <button id="pay-now">Pay now</button>
+    </div>
     <div id="payment-form"></div>
-    <script>
-      const checkout = Checkout.initiate({
-        checkoutId: "<%= checkoutId %>",
-        key: "<%= key %>",
-        events: {
-          onCompleted: (event) => {
-            console.log("Payment Successful:", event);
-            checkout.unmount();
-            document.getElementById("payment-form").innerText = "Thank you for your purchase!";
-          },
-          onCancelled: (event) => {
-            console.log("Payment Cancelled:", event);
-            checkout.unmount();
-            document.getElementById("payment-form").innerText = "Order cancelled!";
-          },
-          onExpired: (event) => {
-            console.log("Payment Expired:", event);
-            checkout.unmount();
-            document.getElementById("payment-form").innerText = "Payment session expired.";
-          },
-        },
-      });
-      checkout.render("#payment-form");
-    </script>
   </body>
+  <script>
+    async function getCheckoutId() {
+      const response = await fetch("/checkout", { method: "POST" });
+
+      if (response.ok) {
+        const json = await response.json();
+
+        const checkout = Checkout.initiate({
+          checkoutId: json.checkoutId,
+          key: json.entityId,
+          options: {
+            theme: {
+              brand: {
+                primary: "#EC5228",
+                secondary: "#111927",
+              },
+              cards: {
+                background: "#ffffff",
+                backgroundHover: "#F3F3F4",
+              },
+            },
+            ordering: {
+              CARD: 1,
+              EFTSECURE: 4,
+              MASTERPASS: 2,
+              CAPITECPAY: 3,
+            },
+          },
+
+
+          events: {
+            onCompleted: (event) => {
+              console.log(event);
+              // Stop rendering Embedded Checkout.
+              checkout.unmount();
+
+              // Show paid
+              document.getElementById("payment-form").innerText = "Paid!";
+            },
+            onCancelled: (event) => {
+              console.log(event);
+              // Stop rendering Embedded Checkout.
+              checkout.unmount();
+
+              // Show cancelled
+              document.getElementById("payment-form").innerText = "Cancelled!";
+            },
+            onExpired: (event) => {
+              console.log(event);
+              // Stop rendering Embedded Checkout.
+              checkout.unmount();
+
+              // Show expired
+              document.getElementById("payment-form").innerText = "Expired!";
+            },
+          },
+        });
+
+        checkout.render("#payment-form");
+      }
+    }
+
+    const payNowBtn = document.getElementById("pay-now");
+    payNowBtn.onclick = (event) => {
+      event.preventDefault();
+
+      getCheckoutId().then(() => {
+        document.getElementById("complete-checkout").style.display = "none";
+      });
+
+      document.getElementById("complete-checkout").innerHTML = "Loading...";
+    };
+  </script>
 </html>
+
