@@ -3,21 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const ejs = require("ejs");
-const cors = require("cors")
+const cors = require("cors");
 
-/**
- * The below values can be retrieved from the checkout screen on Dashboard.
- */
 const entityId = process.env.ENTITY_ID;
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const merchantId = process.env.MERCHANT_ID;
 const allowlistedDomain = process.env.DOMAIN;
-/**
- * The values below correspond to environment for Checkout.
- *
- * https://developer.peachpayments.com/docs/checkout-embedded#api-endpoints
- */
 const authenticationEndpoint = process.env.AUTHENTICATION_ENDPOINT;
 const checkoutEndpoint = process.env.CHECKOUT_ENDPOINT;
 const checkoutJs = process.env.CHECKOUT_JS;
@@ -25,22 +17,45 @@ const checkoutJs = process.env.CHECKOUT_JS;
 app.use(cors());
 app.engine("html", ejs.renderFile);
 app.set("view engine", "html");
+
 app.get("/", function (req, res) {
   res.header("Permissions-Policy", "payment self 'src'");
   res.render("index.ejs", { checkoutJs });
 });
 
 app.post("/checkout", async function (req, res) {
-  // Get an access token to allow us to call the Checkout endpoint.
-  const accessToken = await getAccessToken();
-  // Call the Checkout endpoint to get a checkout ID for use on the frontend.
-  const checkoutId = await getCheckoutId(
-    accessToken,
-    allowlistedDomain,
-    checkoutEndpoint
-  );
+  try {
+    // Get an access token to allow us to call the Checkout endpoint.
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      return res.status(500).json({ error: "Failed to retrieve access token" });
+    }
 
-  return res.status(200).json({ checkoutId, entityId });
+    console.log("Access Token:", accessToken);
+
+    // Call the Checkout endpoint to get a checkout ID for use on the frontend.
+    const checkoutId = await getCheckoutId(
+      accessToken,
+      allowlistedDomain,
+      checkoutEndpoint
+    );
+    if (!checkoutId) {
+      return res.status(500).json({ error: "Failed to retrieve checkout ID" });
+    }
+
+    console.log("Checkout ID:", checkoutId);
+
+    // Build the URL with checkout ID
+    const url = `${req.protocol}://${req.get('host')}/checkout/${checkoutId}`;
+    console.log("Generated URL:", url);
+
+    return res.status(200).json({
+      url: url
+    });
+  } catch (error) {
+    console.error("Error in /checkout route:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.listen(3001, function () {
@@ -49,8 +64,6 @@ app.listen(3001, function () {
 
 /**
  * Get an access token that can be used to validate the request to Checkout.
- *
- * Note: This access token should be reused between requests.
  *
  * @returns {Promise<string>} A JWT access token.
  */
@@ -68,19 +81,24 @@ const getAccessToken = async () => {
     }),
   };
 
-  const response = await fetch(authenticationEndpoint, requestOptions)
-    .then((response) => response.json())
-    .catch((error) => console.log("error", error));
+  try {
+    const response = await fetch(authenticationEndpoint, requestOptions);
+    const data = await response.json();
+    console.log("Access Token Response:", data);
 
-  console.log(response);
-
-  return response.access_token;
+    if (response.ok && data.access_token) {
+      return data.access_token;
+    } else {
+      throw new Error("Failed to retrieve access token");
+    }
+  } catch (error) {
+    console.error("Error in getAccessToken:", error);
+    return null;
+  }
 };
 
 /**
  * Call the Checkout API to get a checkout ID.
- *
- * There are a few parameters that can be set on the request as noted above the body section.
  *
  * @param {string} bearerToken An access token to validate request
  * @param {string} allowlistedDomain An allowlisted domain on Peach Payment's Dashboard
@@ -101,9 +119,6 @@ const getCheckoutId = async (
   const requestOptions = {
     method: "POST",
     headers: headers,
-    /**
-     * Read more about checkout parameters at `https://developer.peachpayments.com/reference/post_v2-checkout`
-     */
     body: JSON.stringify({
       authentication: {
         entityId,
@@ -116,14 +131,21 @@ const getCheckoutId = async (
     }),
   };
 
-  const response = await fetch(
-    `${checkoutEndpoint}/v2/checkout`,
-    requestOptions
-  )
-    .then((response) => response.json())
-    .catch((error) => console.log("error", error));
+  try {
+    const response = await fetch(
+      `${checkoutEndpoint}/v2/checkout`,
+      requestOptions
+    );
+    const data = await response.json();
+    console.log("Checkout ID Response:", data);
 
-  console.log(response);
-
-  return response.checkoutId;
+    if (response.ok && data.checkoutId) {
+      return data.checkoutId;
+    } else {
+      throw new Error("Failed to retrieve checkout ID");
+    }
+  } catch (error) {
+    console.error("Error in getCheckoutId:", error);
+    return null;
+  }
 };
