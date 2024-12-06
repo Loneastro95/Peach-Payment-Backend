@@ -46,15 +46,37 @@ app.post("/checkout", async function (req, res) {
     console.log("Checkout ID:", checkoutId);
 
     // Build the URL with checkout ID
-    const url = `${req.protocol}://${req.get('host')}/checkout/${checkoutId}`;
+    const url = `${req.protocol}://${req.get("host")}/checkout/${checkoutId}`;
     console.log("Generated URL:", url);
 
     return res.status(200).json({
-      url: url
+      url: url,
     });
   } catch (error) {
     console.error("Error in /checkout route:", error);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/checkout/:checkoutId", async (req, res) => {
+  try {
+    const accessToken = await getAccessToken();
+    const checkoutId = await getCheckoutId(
+      accessToken,
+      allowlistedDomain,
+      checkoutEndpoint
+    );
+    const key = entityId;
+    console.log("Rendering EJS with:", { checkoutId, key }); // Debug log
+
+    res.header("Permissions-Policy", "payment self 'src'");
+    return res.render("index.ejs", {
+      checkoutId,
+      key,
+    });
+  } catch (error) {
+    console.error("Error loading checkout page:", error);
+    return res.status(500).send("Internal Server Error");
   }
 });
 
