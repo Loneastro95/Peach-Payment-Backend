@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const ejs = require("ejs");
+const cors = require("cors")
 
 /**
  * The below values can be retrieved from the checkout screen on Dashboard.
@@ -21,6 +22,7 @@ const authenticationEndpoint = process.env.AUTHENTICATION_ENDPOINT;
 const checkoutEndpoint = process.env.CHECKOUT_ENDPOINT;
 const checkoutJs = process.env.CHECKOUT_JS;
 
+app.use(cors());
 app.engine("html", ejs.renderFile);
 app.set("view engine", "html");
 app.get("/", function (req, res) {
