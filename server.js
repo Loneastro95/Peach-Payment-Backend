@@ -50,10 +50,8 @@ app.post("/checkout", async function (req, res) {
 
     console.log("Checkout ID:", checkoutId);
 
-    // Force the use of HTTPS for the generated URL
-    const protocol = req.protocol === "https" ? "https" : "http"; // Default to http if not https
-    const host = req.get("host").replace("http://", "https://"); // Ensure https:// in the host
-    const url = `${protocol}://${host}/checkout/${checkoutId}`;
+    // Always use https for the URL
+    const url = `https://peach-payment-backend.onrender.com/checkout/${checkoutId}`;
 
     console.log("Generated URL:", url);
 
@@ -63,6 +61,7 @@ app.post("/checkout", async function (req, res) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 app.get("/checkout/:checkoutId", async (req, res) => {
   try {
