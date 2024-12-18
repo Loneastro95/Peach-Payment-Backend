@@ -50,8 +50,11 @@ app.post("/checkout", async function (req, res) {
 
     console.log("Checkout ID:", checkoutId);
 
-    // Build the URL with the checkout ID
-    const url = `${req.protocol}://${req.get("host")}/checkout/${checkoutId}`;
+    // Force the use of HTTPS for the generated URL
+    const protocol = req.protocol === "https" ? "https" : "http"; // Default to http if not https
+    const host = req.get("host").replace("http://", "https://"); // Ensure https:// in the host
+    const url = `${protocol}://${host}/checkout/${checkoutId}`;
+
     console.log("Generated URL:", url);
 
     return res.status(200).json({ url });

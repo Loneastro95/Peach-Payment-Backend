@@ -8,42 +8,82 @@
     />
     <title>Complete your payment</title>
     <script src="https://sandbox-checkout.peachpayments.com/js/checkout.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      #payment-form {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        height: 70vh;
+      }
+
+      #secured-by {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        font-weight: bold;
+        color: #333;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Ensuring the peach payment section takes up only 10% of the screen */
+      #secured-by {
+        height: 10%;
+      }
+    </style>
   </head>
   <body>
     <div id="payment-form"></div>
+    <div id="secured-by">Secured by Peach Payments</div>
+
+    <script>
+      const checkout = Checkout.initiate({
+        checkoutId: "<%= checkoutId %>",
+        key: "<%= key %>",
+        events: {
+          onCompleted: (event) => {
+            console.log(event);
+            // Stop rendering Embedded Checkout.
+            checkout.unmount();
+
+            // Show paid.
+            document.getElementById("payment-form").innerText = "Paid!";
+          },
+          onCancelled: (event) => {
+            console.log(event);
+            // Stop rendering Embedded Checkout.
+            checkout.unmount();
+
+            // Show cancelled.
+            document.getElementById("payment-form").innerText = "Cancelled!";
+          },
+          onExpired: (event) => {
+            console.log(event);
+            // Stop rendering Embedded Checkout.
+            checkout.unmount();
+
+            // Show expired.
+            document.getElementById("payment-form").innerText = "Expired!";
+          },
+        },
+      });
+
+      checkout.render("#payment-form");
+    </script>
   </body>
-  <script>
-    const checkout = Checkout.initiate({
-      checkoutId: "<%= checkoutId %>",
-      key: "<%= key %>",
-      events: {
-        onCompleted: (event) => {
-          console.log(event);
-          // Stop rendering Embedded Checkout.
-          checkout.unmount();
-
-          // Show paid.
-          document.getElementById("payment-form").innerText = "Paid!";
-        },
-        onCancelled: (event) => {
-          console.log(event);
-          // Stop rendering Embedded Checkout.
-          checkout.unmount();
-
-          // Show cancelled.
-          document.getElementById("payment-form").innerText = "Cancelled!";
-        },
-        onExpired: (event) => {
-          console.log(event);
-          // Stop rendering Embedded Checkout.
-          checkout.unmount();
-
-          // Show expired.
-          document.getElementById("payment-form").innerText = "Expired!";
-         },
-       },
-    });
-
-    checkout.render("#payment-form");
-</script>
 </html>
