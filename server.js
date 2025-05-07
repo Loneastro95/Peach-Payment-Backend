@@ -14,8 +14,16 @@ const authenticationEndpoint = process.env.AUTHENTICATION_ENDPOINT;
 const checkoutEndpoint = process.env.CHECKOUT_ENDPOINT;
 const checkoutJs = process.env.CHECKOUT_JS;
 
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true,
+  optionSuccessStatus: 200
+  };
+  
+  app.use(cors(corsOptions));
+
 // Middleware
-app.use(cors());
+//app.use(cors());
 app.use(express.json()); // Parses JSON request bodies
 app.engine("html", ejs.renderFile);
 app.set("view engine", "html");
