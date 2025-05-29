@@ -20,7 +20,13 @@ const corsOptions = {
   optionSuccessStatus: 200
   };
   
-  app.use(cors(corsOptions));
+  // app.use(cors(corsOptions));
+
+  // Enable CORS for all routes
+app.use(cors());
+
+// Handle preflight requests for all routes
+app.options('*', cors());
 
 // Middleware
 //app.use(cors());
